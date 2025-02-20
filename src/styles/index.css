@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Component Classes */
+  .btn {
+    @apply transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .input-focus {
+    @apply focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Chat Components */
+  .chat-bubble {
+    @apply relative p-6 rounded-2xl max-w-[85%] shadow-sm transition-all duration-200;
+  }
+
+  .chat-bubble-ai {
+    @apply chat-bubble bg-white text-gray-800 ml-12 animate-fade-in;
+  }
+
+  .chat-bubble-user {
+    @apply chat-bubble bg-accent-500 text-white mr-2;
+  }
+
+  .typing-indicator {
+    @apply flex items-center space-x-1;
+  }
+
+  .typing-indicator span {
+    @apply inline-block w-2 h-2 bg-gray-400 rounded-full;
+    animation: typing 1.4s infinite both;
+  }
+
+  /* Form Components */
+  .form-group {
+    @apply relative mb-4;
+  }
+
+  .validation-message {
+    @apply absolute -bottom-5 left-0 text-xs transition-all duration-200;
+  }
+
+  .validation-message.error {
+    @apply text-accent-500;
+  }
+
+  .validation-message.success {
+    @apply text-secondary-500;
+  }
+
+  /* Loading States */
+  .loading-dots {
+    @apply flex items-center space-x-1;
+  }
+
+  .loading-dots span {
+    @apply w-1.5 h-1.5 bg-current rounded-full;
+    animation: loadingDots 1.4s infinite both;
+  }
+
+  /* Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 hover:bg-gray-400 rounded-full transition-colors;
+  }
+}
+
+/* Animations */
+@keyframes typing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+@keyframes loadingDots {
+  0%, 100% { transform: scale(0.5); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+/* Utility Classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-stream {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.progress-animate {
+  animation: progress 0.3s ease-out forwards;
+}

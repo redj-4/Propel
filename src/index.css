@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .input-focus {
+    @apply focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .chat-bubble {
+    @apply relative p-6 rounded-2xl max-w-[85%] shadow-sm transition-all duration-200;
+  }
+
+  .chat-bubble-ai {
+    @apply chat-bubble bg-white text-gray-800 ml-12 animate-fade-in;
+  }
+
+  .chat-bubble-user {
+    @apply chat-bubble bg-accent-500 text-white mr-2;
+  }
+
+  .typing-indicator {
+    @apply flex items-center space-x-1;
+  }
+
+  .typing-indicator span {
+    @apply inline-block w-2 h-2 bg-gray-400 rounded-full;
+    animation: typing 1.4s infinite both;
+  }
+
+  .typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  /* Authentication Modal Styles */
+  .auth-modal-overlay {
+    @apply fixed inset-0 bg-primary-900/50 backdrop-blur-sm flex items-center justify-center z-50;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .auth-modal {
+    @apply bg-white rounded-xl p-8 w-full max-w-md relative shadow-xl;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .auth-input {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg transition-all duration-200;
+    @apply focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none;
+    @apply placeholder:text-gray-400;
+  }
+
+  .auth-input-error {
+    @apply border-accent-500 focus:ring-accent-500;
+  }
+
+  .auth-error {
+    @apply bg-accent-50 text-accent-600 p-3 rounded-lg flex items-start;
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .auth-divider {
+    @apply relative text-center my-6;
+  }
+
+  .auth-divider::before,
+  .auth-divider::after {
+    @apply absolute top-1/2 w-[calc(50%-1rem)] border-t border-gray-200;
+    content: '';
+  }
+
+  .auth-divider::before {
+    @apply left-0;
+  }
+
+  .auth-divider::after {
+    @apply right-0;
+  }
+
+  /* Guest Mode Banner */
+  .guest-banner {
+    @apply bg-accent-50 border border-accent-200 rounded-lg p-4;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .guest-counter {
+    @apply inline-flex items-center justify-center bg-accent-100 text-accent-700 px-2 py-1 rounded-full text-sm font-medium;
+  }
+}
+
+/* Animations */
+@keyframes typing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-stream {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 hover:bg-gray-400 rounded-full transition-colors;
+}
+
+@keyframes progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.progress-animate {
+  animation: progress 0.3s ease-out forwards;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+  @apply h-1 rounded-full mt-2 transition-all duration-300;
+}
+
+.password-strength-weak {
+  @apply bg-accent-500 w-1/4;
+}
+
+.password-strength-medium {
+  @apply bg-coral-500 w-2/4;
+}
+
+.password-strength-strong {
+  @apply bg-secondary-500 w-3/4;
+}
+
+.password-strength-very-strong {
+  @apply bg-primary-600 w-full;
+}
+
+/* Form Validation Styles */
+.form-group {
+  @apply relative mb-4;
+}
+
+.validation-message {
+  @apply absolute -bottom-5 left-0 text-xs;
+  @apply transition-all duration-200;
+}
+
+.validation-message.error {
+  @apply text-accent-500;
+}
+
+.validation-message.success {
+  @apply text-secondary-500;
+}
+
+/* Loading States */
+.loading-dots {
+  @apply flex items-center space-x-1;
+}
+
+.loading-dots span {
+  @apply w-1.5 h-1.5 bg-current rounded-full;
+  animation: loadingDots 1.4s infinite both;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loadingDots {
+  0%, 100% { transform: scale(0.5); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+/* Toast Notifications */
+.toast {
+  @apply fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg;
+  @apply transform transition-all duration-300;
+}
+
+.toast-success {
+  @apply bg-secondary-500 text-white;
+}
+
+.toast-error {
+  @apply bg-accent-500 text-white;
+}
+
+.toast-info {
+  @apply bg-primary-500 text-white;
+}
+
+/* Guest Mode Styles */
+.guest-mode-indicator {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  @apply bg-accent-100 text-accent-700;
+}
+
+.messages-remaining {
+  @apply ml-2 px-2 py-0.5 bg-accent-200 rounded-full text-xs font-semibold;
+}
