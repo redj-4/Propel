@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { useAI } from '../lib/hooks/useAI';
@@ -21,20 +21,16 @@ interface Message {
   type: 'user' | 'ai';
   content: string;
   messageType?: MessageType;
-  tone?: MessageTone;
   isStarred?: boolean;
 }
-
-const WELCOME_MESSAGE = `👋 Hi! I'm your AI career assistant. I'll help you craft compelling professional messages that get responses.
-
-Let's start by understanding your background. Could you share your resume with me?`;
 
 const ChatApp = () => {
   const { user, isGuest, guestMessagesLeft, decrementGuestMessages } = useAuth();
   const { generateMessage, analyzeJobMatch } = useAI();
   const { saveMessage, toggleStar } = useMessages(user?.id || null);
   
-  const [step, setStep] = useState<Step>('intro');
+  // Start at 'resume' so we only show the upload first
+  const [step, setStep] = useState<Step>('resume');
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -54,51 +50,36 @@ const ChatApp = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    // Initial welcome message
-    setMessages([
-      {
-        id: '1',
-        type: 'ai',
-        content: WELCOME_MESSAGE,
-      },
-    ]);
-    setStep('resume');
-  }, []);
-
+  // Helper to add an AI message
   const addAIMessage = async (content: string, delay = 500) => {
     setIsTyping(true);
     await new Promise(resolve => setTimeout(resolve, delay));
-    
     setMessages(prev => [
       ...prev,
-      {
-        id: Date.now().toString(),
-        type: 'ai',
-        content
-      }
+      { id: Date.now().toString(), type: 'ai', content }
     ]);
     setIsTyping(false);
   };
 
+  // Handle resume upload
   const handlePdfUpload = async (file: File) => {
     setIsLoading(true);
     setFileName(file.name);
 
     try {
-      // Here you would normally process the PDF and extract text
-      // For now, we'll simulate this with a timeout
+      // Simulate PDF processing
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       if (user) {
         try {
           const resumeData = await ResumeService.createResume(
             user.id,
-            'Sample resume content', // This would be the actual extracted content
+            'Sample resume content',
             file.name
           );
           setResumeId(resumeData.id);
@@ -111,6 +92,11 @@ const ChatApp = () => {
       }
       
       setResume('Sample resume content');
+      
+      // After uploading, set the step to 'goals'
+      setStep('goals');
+      
+      // Now that we have a resume, add an AI welcome or "next-step" message
       await addAIMessage(`Thanks for sharing your resume! I've analyzed it and noticed your experience in software development and project management.
 
 What type of role are you targeting? For example:
@@ -121,7 +107,7 @@ What type of role are you targeting? For example:
 • Finance
 
 Or tell me about your ideal role!`);
-      setStep('goals');
+      
     } catch (error) {
       toast.error('Error processing PDF. Please try again.');
     } finally {
@@ -129,6 +115,7 @@ Or tell me about your ideal role!`);
     }
   };
 
+  // Drag & drop events
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -142,7 +129,6 @@ Or tell me about your ideal role!`);
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const file = e.dataTransfer.files[0];
     if (file && file.type === 'application/pdf') {
       handlePdfUpload(file);
@@ -151,14 +137,11 @@ Or tell me about your ideal role!`);
     }
   };
 
+  // User has specified career goals
   const handleCareerGoalSubmit = async (goal: string) => {
     setMessages(prev => [
       ...prev,
-      {
-        id: Date.now().toString(),
-        type: 'user',
-        content: goal
-      }
+      { id: Date.now().toString(), type: 'user', content: goal }
     ]);
 
     await addAIMessage(`Great choice! ${goal} is a growing field with lots of opportunities.
@@ -174,18 +157,17 @@ This helps me tailor the message to make a strong connection.`);
     setCurrentInput('');
   };
 
+  // Generate a new message using AI
   const handleGenerate = async () => {
     if (!resume) {
       toast.error('Please upload your resume first');
       return;
     }
-
     if (isGuest && guestMessagesLeft <= 0) {
       setShowAuthModal(true);
       toast.error('You have used all your guest messages. Please sign up to continue.');
       return;
     }
-
     setIsTyping(true);
     try {
       const generatedContent = await generateMessage(
@@ -194,24 +176,13 @@ This helps me tailor the message to make a strong connection.`);
         messageType,
         messageTone
       );
+      if (!generatedContent) throw new Error('Failed to generate message');
 
-      if (!generatedContent) {
-        throw new Error('Failed to generate message');
-      }
+      if (isGuest) decrementGuestMessages();
 
-      if (isGuest) {
-        decrementGuestMessages();
-      }
-
-      // Save message to database if user is authenticated
       if (user && resumeId) {
         try {
-          await saveMessage(
-            resumeId,
-            generatedContent,
-            messageType,
-            currentInput
-          );
+          await saveMessage(resumeId, generatedContent, messageType, currentInput);
         } catch (error) {
           console.error('Failed to save message:', error);
         }
@@ -219,26 +190,13 @@ This helps me tailor the message to make a strong connection.`);
 
       setMessages(prev => [
         ...prev,
-        {
-          id: Date.now().toString(),
-          type: 'user',
-          content: currentInput
-        },
-        {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: generatedContent,
-          messageType,
-          tone: messageTone
-        }
+        { id: Date.now().toString(), type: 'user', content: currentInput },
+        { id: (Date.now() + 1).toString(), type: 'ai', content: generatedContent, messageType }
       ]);
       setStep('message');
 
       if (isGuest && guestMessagesLeft <= 1) {
-        toast.success('Sign up to unlock unlimited message generation!', {
-          duration: 5000,
-          icon: '🚀'
-        });
+        toast.success('Sign up to unlock unlimited message generation!', { duration: 5000, icon: '🚀' });
       }
 
       // Analyze job match if a job posting was provided
@@ -271,18 +229,16 @@ Would you like me to help you optimize your resume for this role?`);
     handleGenerate();
   };
 
+  // Star/unstar messages
   const handleStarMessage = async (id: string, isStarred: boolean) => {
     if (!user) {
       setShowAuthModal(true);
       return;
     }
-
     try {
       await toggleStar(id, isStarred);
       setMessages(prev =>
-        prev.map(m =>
-          m.id === id ? { ...m, isStarred } : m
-        )
+        prev.map(m => (m.id === id ? { ...m, isStarred } : m))
       );
     } catch (error) {
       toast.error('Failed to update message');
@@ -290,19 +246,22 @@ Would you like me to help you optimize your resume for this role?`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <Toaster position="top-right" />
-      
-      <Navbar
-        showDemoWarning={!import.meta.env.VITE_OPENAI_API_KEY}
-        variant="app"
-      />
+      <Navbar showDemoWarning={!import.meta.env.VITE_OPENAI_API_KEY} variant="app" />
 
       <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        {/* If you want to greet the user at the top, you can keep this or remove it */}
+        {user && user.displayName && (
+          <div className="mt-4 text-xl font-semibold text-gray-800">
+            Welcome back, {user.displayName}!
+          </div>
+        )}
+
         <ProgressTracker currentStep={step} />
 
         {isGuest && (
-          <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 my-6">
             <p className="text-primary-900 font-medium">
               Guest Mode: {guestMessagesLeft} message{guestMessagesLeft !== 1 ? 's' : ''} remaining
             </p>
@@ -313,39 +272,18 @@ Would you like me to help you optimize your resume for this role?`);
         )}
 
         <div className="flex-1 flex flex-col min-h-0 py-6">
-          <div 
-            ref={chatContainerRef}
-            className="flex-1 overflow-y-auto custom-scrollbar space-y-6 mb-6"
-          >
-            <MessageList
-              messages={messages}
-              isTyping={isTyping}
-              onCopy={(content) => {
-                navigator.clipboard.writeText(content);
-                toast.success('Copied to clipboard!');
-              }}
-              onSave={async (content) => {
-                if (!user && !isGuest) {
-                  setShowAuthModal(true);
-                  return;
-                }
-                // Save to Supabase
-                toast.success('Message saved!');
-              }}
-              onSend={(content) => {
-                if (messageType === 'linkedin') {
-                  window.open('https://linkedin.com/messaging', '_blank');
-                } else {
-                  window.location.href = `mailto:?body=${encodeURIComponent(content)}`;
-                }
-              }}
-              onStar={handleStarMessage}
-            />
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="mt-auto pt-4 bg-gray-50">
-            {step === 'resume' && !resume && (
+          {/* 
+            If no resume is uploaded and we're on the 'resume' step, 
+            ONLY show the resume upload component. 
+            Otherwise, show the chat interface. 
+          */}
+          {step === 'resume' && !resume ? (
+            <div 
+              className={`p-4 border rounded-lg ${isDragging ? 'border-blue-400 border-dashed bg-blue-50' : 'border-gray-300'}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <ResumeUpload
                 onUpload={handlePdfUpload}
                 isLoading={isLoading}
@@ -355,41 +293,75 @@ Would you like me to help you optimize your resume for this role?`);
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               />
-            )}
+            </div>
+          ) : (
+            <>
+              {/* Chat interface: messages, input, etc. */}
+              <div
+                ref={chatContainerRef}
+                className="flex-1 overflow-y-auto custom-scrollbar space-y-6 mb-6 transition-all duration-300 ease-in-out"
+              >
+                <MessageList
+                  messages={messages}
+                  isTyping={isTyping}
+                  onCopy={(content) => {
+                    navigator.clipboard.writeText(content);
+                    toast.success(
+                      user && user.displayName
+                        ? `Copied to clipboard, ${user.displayName}!`
+                        : 'Copied to clipboard!'
+                    );
+                  }}
+                  onSave={async (content) => {
+                    if (!user && !isGuest) {
+                      setShowAuthModal(true);
+                      return;
+                    }
+                    toast.success('Message saved!');
+                  }}
+                  onSend={(content) => {
+                    if (messageType === 'linkedin') {
+                      window.open('https://linkedin.com/messaging', '_blank');
+                    } else {
+                      window.location.href = `mailto:?body=${encodeURIComponent(content)}`;
+                    }
+                  }}
+                  onStar={handleStarMessage}
+                />
+                <div ref={messagesEndRef} />
+              </div>
 
-            <MessageInput
-              step={step}
-              currentInput={currentInput}
-              setCurrentInput={setCurrentInput}
-              onSubmit={
-                step === 'goals'
-                  ? () => handleCareerGoalSubmit(currentInput)
-                  : step === 'recipient'
-                  ? handleGenerate
-                  : step === 'message'
-                  ? handleGenerate
-                  : () => {}
-              }
-              onRegenerate={step === 'message' ? handleRegenerate : undefined}
-              messageType={messageType}
-              setMessageType={setMessageType}
-              tone={messageTone}
-              setTone={setMessageTone}
-              isTyping={isTyping}
-              suggestedInputs={
-                step === 'goals'
-                  ? ['Software Engineering', 'Data Science', 'Product Management', 'Marketing', 'Finance']
-                  : undefined
-              }
-            />
-          </div>
+              <div className="mt-auto pt-4 bg-white">
+                <MessageInput
+                  step={step}
+                  currentInput={currentInput}
+                  setCurrentInput={setCurrentInput}
+                  onSubmit={
+                    step === 'goals'
+                      ? () => handleCareerGoalSubmit(currentInput)
+                      : (step === 'recipient' || step === 'message')
+                      ? handleGenerate
+                      : () => {}
+                  }
+                  onRegenerate={step === 'message' ? handleRegenerate : undefined}
+                  messageType={messageType}
+                  setMessageType={setMessageType}
+                  tone={messageTone}
+                  setTone={setMessageTone}
+                  isTyping={isTyping}
+                  suggestedInputs={
+                    step === 'goals'
+                      ? ['Software Engineering', 'Data Science', 'Product Management', 'Marketing', 'Finance']
+                      : undefined
+                  }
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 };
