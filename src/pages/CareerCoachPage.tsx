@@ -19,10 +19,10 @@ const CareerCoachPage = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              AI Career Coach
+              Live Career Coach
             </h1>
             <p className="text-gray-600 mt-1">
-              Get personalized career guidance and practice your skills
+              Chat with your personal career coach for guidance across multiple areas.
             </p>
           </div>
         </div>
