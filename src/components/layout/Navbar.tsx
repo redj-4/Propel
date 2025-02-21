@@ -36,9 +36,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <nav className={`bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 ${
-        variant === 'landing' ? 'bg-white/80 backdrop-blur-md' : ''
-      }`}>
+      <nav className={`bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 ${variant === 'landing' ? 'bg-white/80 backdrop-blur-md' : ''} transition-all duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Logo />
@@ -55,6 +53,12 @@ const Navbar: React.FC<NavbarProps> = ({
                   </a>
                   <Link 
                     to="/pricing"
+                    onClick={(e) => {
+                      if (location.pathname === '/pricing') {
+                        e.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Pricing
@@ -70,7 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({
               )}
 
               {showDemoWarning && (
-                <div className="flex items-center text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+                <div className="flex items-center text-amber-600 bg-amber-50 px-4 py-2 rounded-lg transition-all duration-300">
                   <AlertTriangle className="w-5 h-5 mr-2" />
                   <span className="text-sm">Demo Mode: API key not set</span>
                 </div>
