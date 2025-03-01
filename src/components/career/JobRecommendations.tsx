@@ -14,7 +14,11 @@ interface Job {
   url: string;
 }
 
-const JobRecommendations: React.FC = () => {
+interface JobRecommendationsProps {
+  resumeData?: any;
+}
+
+const JobRecommendations: React.FC<JobRecommendationsProps> = ({ resumeData }) => {
   const { getJobRecommendations, analyzeJobMatch, loading } = useAI();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -26,10 +30,10 @@ const JobRecommendations: React.FC = () => {
 
   useEffect(() => {
     loadJobs();
-  }, []);
+  }, [resumeData]);
 
   const loadJobs = async () => {
-    const recommendations = await getJobRecommendations();
+    const recommendations = await getJobRecommendations(resumeData);
     if (recommendations) {
       setJobs(recommendations);
     }
@@ -37,7 +41,7 @@ const JobRecommendations: React.FC = () => {
 
   const analyzeJob = async (job: Job) => {
     setSelectedJob(job);
-    const jobAnalysis = await analyzeJobMatch(job);
+    const jobAnalysis = await analyzeJobMatch(job, resumeData);
     if (jobAnalysis) {
       setAnalysis(jobAnalysis);
     }

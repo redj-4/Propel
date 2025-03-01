@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAI } from '../../lib/hooks/useAI';
-import { Mic, Play, Pause, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
+import { Mic, Play, Pause, CheckCircle } from 'lucide-react';
 import Button from '../common/Button';
 
 interface Question {
@@ -10,7 +10,11 @@ interface Question {
   expectedPoints: string[];
 }
 
-const MockInterview: React.FC = () => {
+interface MockInterviewProps {
+  resumeData?: any;
+}
+
+const MockInterview: React.FC<MockInterviewProps> = ({ resumeData }) => {
   const { generateInterviewQuestions, analyzeResponse, loading } = useAI();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -18,7 +22,7 @@ const MockInterview: React.FC = () => {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const startInterview = async () => {
-    const newQuestions = await generateInterviewQuestions();
+    const newQuestions = await generateInterviewQuestions(resumeData);
     if (newQuestions) {
       setQuestions(newQuestions);
       setCurrentQuestion(0);
@@ -32,9 +36,8 @@ const MockInterview: React.FC = () => {
 
   const submitResponse = async () => {
     setIsRecording(false);
-    // In a real implementation, we would send the audio/transcript
-    // to the AI for analysis
-    const response = await analyzeResponse("Sample response");
+    // In a real implementation, you would send the recorded audio/transcript.
+    const response = await analyzeResponse("Sample response", resumeData);
     setFeedback(response);
   };
 

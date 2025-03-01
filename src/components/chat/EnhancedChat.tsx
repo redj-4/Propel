@@ -7,7 +7,11 @@ import Button from '../common/Button';
 import { RefreshCcw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const EnhancedChat: React.FC = () => {
+interface EnhancedChatProps {
+  resumeData?: any;
+}
+
+const EnhancedChat: React.FC<EnhancedChatProps> = ({ resumeData }) => {
   const { messages, sendMessage, resetSession } = useChat();
   const { generateMessage, loading: aiLoading } = useAI();
   const [currentInput, setCurrentInput] = React.useState('');
@@ -30,8 +34,8 @@ const EnhancedChat: React.FC = () => {
       await sendMessage(currentInput);
       setCurrentInput('');
 
-      // Directly generate an AI response based on the user's prompt
-      const aiResponse = await generateMessage('', currentInput, messageType, messageTone);
+      // Generate an AI response using the resume context
+      const aiResponse = await generateMessage(resumeData, currentInput, messageType, messageTone);
       if (aiResponse) {
         await sendMessage(aiResponse, 'assistant');
       }
@@ -43,7 +47,7 @@ const EnhancedChat: React.FC = () => {
 
   const handleRegenerate = async () => {
     try {
-      const aiResponse = await generateMessage('', currentInput, messageType, messageTone);
+      const aiResponse = await generateMessage(resumeData, currentInput, messageType, messageTone);
       if (aiResponse) {
         await sendMessage(aiResponse, 'assistant');
       }
